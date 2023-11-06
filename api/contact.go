@@ -2,8 +2,10 @@ package api
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/gin-gonic/gin"
@@ -59,9 +61,17 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	creds := credentials.NewStaticCredentials(os.Getenv("aws_access_key_id"), os.Getenv("aws_secret_access_key"), "")
 	sess := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String("us-east-1"), // Replace with your desired region
+		Credentials: creds,
+		Region:      aws.String("us-east-1"), // Replace with your desired region
 	}))
+	if _, err := sess.Config.Credentials.Get(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	svc := dynamodb.New(sess)
 	tableName := "contato"
 	id := uuid.New().String()
