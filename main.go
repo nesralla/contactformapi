@@ -18,7 +18,7 @@ func main() {
 	})
 
 	// routes definition for finding and creating contacts
-	r.GET("/health", api.healthCheck)
+	r.GET("/health", api.HealthCheck)
 	r.GET("/contacts", api.FindUsers)
 	r.POST("/contact", api.CreateUser)
 	// start the server

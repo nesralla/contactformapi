@@ -10,7 +10,7 @@ import (
 func CreateDatabase() *gorm.DB {
 
 	// Create db instance with gorm
-	db, err := gorm.Open("sqlite3", "/ksronrvtmp.db")
+	db, err := gorm.Open("sqlite3", "/formtmp.db")
 	if err != nil {
 		panic("Failed to connect to database!")
 	}
