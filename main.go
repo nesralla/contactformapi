@@ -21,6 +21,8 @@ func main() {
 	r.GET("/health", api.HealthCheck)
 	r.GET("/contacts", api.FindUsers)
 	r.POST("/contact", api.CreateUser)
+	r.POST("/contactendereco", api.CreateUserEndereco)
+	r.POST("/contactveiculo", api.CreateUserVeiculo)
 	// start the server
 	r.SetTrustedProxies(nil)
 

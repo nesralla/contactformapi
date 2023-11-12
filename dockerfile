@@ -11,7 +11,7 @@ COPY . .
 RUN apt-get update && apt-get install -y sqlite3 libsqlite3-dev
 
 # Build the Go app
-RUN GOOS=linux GOARCH=amd64 go build -o server 
+RUN go build -o server 
 
 # Expose port 8080 for the container
 EXPOSE 8080
