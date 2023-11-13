@@ -123,7 +123,6 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 	client := dynamodb.NewFromConfig(cfg)
-
 	tableName := "contato"
 	item, err := attributevalue.MarshalMap(&ContactUser{
 		Idcoopermapp: input.Idcoopermapp,
@@ -148,7 +147,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 	// Create contact sqlite
-	user := ContactUser{Idcoopermapp: input.Idcoopermapp, Name: input.Name, Email: input.Email, Documento: input.Cpf}
+	user := ContactUser{Idcoopermapp: input.Idcoopermapp, Name: input.Name, Email: input.Email, Documento: input.Cpf, Cellphone: input.Cellphone}
 
 	db.Create(&user)
 

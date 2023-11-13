@@ -3,13 +3,20 @@ package main
 import (
 	"contactform/api"
 	"contactform/config"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	r := gin.Default()
-
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:3000", "http://coopermapp.aplicativos.rio.br"},
+		AllowMethods: []string{"POST", "HEAD", "PATCH", "GET", "PUT"},
+		AllowHeaders: []string{"Origin"},
+		MaxAge:       12 * time.Hour,
+	}))
 	// create/configure database instance
 	db := config.CreateDatabase()
 	// set db to gin context with a middleware to all incoming request
