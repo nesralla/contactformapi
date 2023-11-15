@@ -12,7 +12,7 @@ import (
 func main() {
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:3000", "http://coopermapp.aplicativos.rio.br"},
+		AllowOrigins: []string{"http://localhost:3000", "http://coopermapp.aplicativos.rio.br", "https://coopermapp.aplicativos.rio.br"},
 		AllowMethods: []string{"POST", "HEAD", "PATCH", "GET", "PUT"},
 		AllowHeaders: []string{"Origin"},
 		MaxAge:       12 * time.Hour,
