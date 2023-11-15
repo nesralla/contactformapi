@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/autotls"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,6 +33,6 @@ func main() {
 	// start the server
 	r.SetTrustedProxies(nil)
 
-	autotls.Run(r, "contact.api.rio.br", "*.api.rio.br", "coopermapp.aplicativos.rio.br", "*.aplicativos.rio.br")
+	r.Run(":8080")
 
 }

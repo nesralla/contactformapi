@@ -15,7 +15,6 @@ RUN GOOS=linux GOARCH=amd64 go build -o server
 
 # Expose port 8080 for the container
 EXPOSE 8080
-EXPOSE 443
 
 # Start the application
 ENTRYPOINT [ "/app/server" ] 
