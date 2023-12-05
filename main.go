@@ -12,7 +12,7 @@ import (
 func main() {
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:3000", "http://coopermapp.aplicativos.rio.br", "https://coopermapp.aplicativos.rio.br"},
+		AllowOrigins: []string{"http://localhost:3000", "http://localhost:8080", "http://coopermapp.aplicativos.rio.br", "https://coopermapp.aplicativos.rio.br", "https://dynamodb.us-east-1.amazonaws.com"},
 		AllowMethods: []string{"POST", "HEAD", "PATCH", "GET", "PUT"},
 		AllowHeaders: []string{"Origin"},
 		MaxAge:       12 * time.Hour,
@@ -32,7 +32,6 @@ func main() {
 	r.POST("/contactveiculo", api.CreateUserVeiculo)
 	// start the server
 	r.SetTrustedProxies(nil)
-
 	r.Run(":8080")
 
 }

@@ -1,20 +1,28 @@
-# Use the official Golang image as the parent image
-FROM golang:latest
-
-# Set the working directory inside the container
-WORKDIR /app
-
-# Copy the local package files to the container's workspace
+#build stage
+FROM golang:alpine AS builder
+ENV AWS_ACCESS_KEY_ID=AKIATAXQ52ELAXRNFGH5
+ENV AWS_SECRET_ACCESS_KEY=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
+ENV AWS_REGION=us-east-1
+ENV GIN_MODE=release
+RUN apk add --no-cache git
+WORKDIR /go/src/app
 COPY . .
 
-# Install SQLite3
-RUN apt-get update && apt-get install -y sqlite3 libsqlite3-dev
+RUN go get -d -v ./...
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /go/bin/app -v .
 
-# Build the Go app
-RUN GOOS=linux GOARCH=amd64 go build -o server 
+#final stage
+FROM alpine:latest
+RUN apk update && apk upgrade
+RUN apk add --no-cache sqlite
 
-# Expose port 8080 for the container
+ENV AWS_ACCESS_KEY_ID=AKIATAXQ52ELAXRNFGH5
+ENV AWS_SECRET_ACCESS_KEY=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
+ENV AWS_REGION=us-east-1
+ENV GIN_MODE=release
+COPY --from=builder /go/bin/app /usr/bin/
+RUN mkdir /app
+WORKDIR /app
 EXPOSE 8080
 
-# Start the application
-ENTRYPOINT [ "/app/server" ] 
+ENTRYPOINT ["/usr/bin/app"] 

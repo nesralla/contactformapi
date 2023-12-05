@@ -15,12 +15,21 @@ import (
 
 // Contact : Model for Contact
 type ContactUser struct {
-	ID           uint   `gorm:"primary_key;autoincrement"`
-	Idcoopermapp string `gorm:"not null"`
-	Name         string `gorm:"not null"`
-	Email        string `gorm:"not null"`
-	Documento    string `gorm:"not null"`
-	Cellphone    string `gorm:"not null"`
+	ID             uint      `gorm:"primary_key;autoincrement"`
+	Idcoopermapp   string    `gorm:"not null"`
+	Name           string    `gorm:"not null"`
+	Email          string    `gorm:"not null"`
+	Documento      string    `gorm:"not null"`
+	Cellphone      string    `gorm:"not null"`
+	Rg             string    `gorm:"not null"`
+	DataNascimento time.Time `gorm:"not null"`
+	EstadoCivil    string    `gorm:"not null"`
+	NamePai        string    `gorm:"not null"`
+	NameMae        string    `gorm:"not null"`
+	Sexo           string    `gorm:"not null"`
+	Pis            string    `gorm:"not null"`
+	TituloEleitor  string    `gorm:"not null"`
+	Beneficio      bool      `gorm:"not null"`
 }
 type ContactUserEndereco struct {
 	ID           uint   `gorm:"primary_key;autoincrement"`
@@ -43,6 +52,8 @@ type ContactUserVeiculo struct {
 	Compareceu     bool
 	Uniformizado   bool
 	Carroplaca     string
+	Renavam        string
+	Chassi         string
 	Carrotipo      int
 	Carromodelo    int
 	Carromarca     int
@@ -58,20 +69,22 @@ type ContactUserVeiculo struct {
 type CreateContactUserVeiculoInput struct {
 	Idcoopermapp   string    `json:"idcoopermapp" binding:"required"`
 	Cpf            string    `json:"cpf" binding:"required"`
-	Modalidade     int       `json:"modalidade"`
+	Modalidade     int       `json:"modalidade,string,omitempty"`
 	Numerocnh      string    `json:"numerocnh" `
 	Categoriacnh   string    `json:"categoriacnh"`
 	Validadecnh    time.Time `json:"validadecnh"`
 	Compareceu     bool      `json:"compareceu"`
 	Uniformizado   bool      `json:"uniformizado"`
 	Carroplaca     string    `json:"carroplaca"`
-	Carrotipo      int       `json:"carrotipo"`
-	Carromodelo    int       `json:"carromodelo"`
-	Carromarca     int       `json:"carromarca"`
+	Renavam        string    `json:"renavam"`
+	Chassi         string    `json:"chassi"`
+	Carrotipo      int       `json:"carrotipo,string,omitempty"`
+	Carromodelo    int       `json:"carromodelo,string,omitempty"`
+	Carromarca     int       `json:"carromarca,string,omitempty"`
 	Carroano       string    `json:"carroano"`
 	Cor            string    `json:"cor"`
 	Carga          bool      `json:"carga"`
-	Capacidade     float32   `json:"capacidade"`
+	Capacidade     float32   `json:"capacidade,string,omitempty"`
 	Adesivado      bool      `json:"adesivado"`
 	Dataadesivado  time.Time `json:"dataadesivado"`
 	Vistoriado     bool      `json:"vistoriado"`
@@ -80,11 +93,20 @@ type CreateContactUserVeiculoInput struct {
 
 // CreateContactInput : struct for create contact post request
 type CreateContactUserInput struct {
-	Idcoopermapp string `json:"idcoopermapp" binding:"required"`
-	Name         string `json:"name" binding:"required"`
-	Email        string `json:"email" binding:"required"`
-	Cpf          string `json:"cpf" binding:"required"`
-	Cellphone    string `json:"cellphone" binding:"required"`
+	Idcoopermapp   string    `json:"idcoopermapp" binding:"required"`
+	Name           string    `json:"name" binding:"required"`
+	Email          string    `json:"email" binding:"required"`
+	Cpf            string    `json:"cpf" binding:"required"`
+	Cellphone      string    `json:"cellphone" binding:"required"`
+	Rg             string    `json:"rg" binding:"required"`
+	DataNascimento time.Time `json:"datanascimento" binding:"required"`
+	EstadoCivil    string    `json:"estadocivil" binding:"required"`
+	NamePai        string    `json:"namepai" binding:"required"`
+	NameMae        string    `json:"namemae" binding:"required"`
+	Sexo           string    `json:"sexo" binding:"required"`
+	Pis            string    `json:"pis" binding:"required"`
+	TituloEleitor  string    `json:"tituloeleitor" binding:"required"`
+	Beneficio      bool      `json:"beneficio" binding:"required"`
 }
 type CreateContactUserEnderecoInput struct {
 	Idcoopermapp string `json:"idcoopermapp" binding:"required"`
@@ -117,7 +139,8 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-east-1"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error config aws": err.Error()})
 		return
@@ -125,11 +148,20 @@ func CreateUser(c *gin.Context) {
 	client := dynamodb.NewFromConfig(cfg)
 	tableName := "contato"
 	item, err := attributevalue.MarshalMap(&ContactUser{
-		Idcoopermapp: input.Idcoopermapp,
-		Name:         input.Name,
-		Email:        input.Email,
-		Documento:    input.Cpf,
-		Cellphone:    input.Cellphone,
+		Idcoopermapp:   input.Idcoopermapp,
+		Name:           input.Name,
+		Email:          input.Email,
+		Documento:      input.Cpf,
+		Cellphone:      input.Cellphone,
+		Rg:             input.Rg,
+		DataNascimento: input.DataNascimento,
+		EstadoCivil:    input.EstadoCivil,
+		NamePai:        input.NamePai,
+		NameMae:        input.NameMae,
+		Sexo:           input.Sexo,
+		Pis:            input.Pis,
+		TituloEleitor:  input.TituloEleitor,
+		Beneficio:      input.Beneficio,
 	})
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error marshal map": err.Error()})
@@ -147,7 +179,9 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 	// Create contact sqlite
-	user := ContactUser{Idcoopermapp: input.Idcoopermapp, Name: input.Name, Email: input.Email, Documento: input.Cpf, Cellphone: input.Cellphone}
+	user := ContactUser{Idcoopermapp: input.Idcoopermapp, Name: input.Name, Email: input.Email, Documento: input.Cpf, Cellphone: input.Cellphone,
+		Rg: input.Rg, DataNascimento: input.DataNascimento, EstadoCivil: input.EstadoCivil, NamePai: input.NamePai, NameMae: input.NameMae,
+		Sexo: input.Sexo, Pis: input.Pis, TituloEleitor: input.TituloEleitor, Beneficio: input.Beneficio}
 
 	db.Create(&user)
 
@@ -229,6 +263,8 @@ func CreateUserVeiculo(c *gin.Context) {
 		Compareceu:     input.Compareceu,
 		Uniformizado:   input.Uniformizado,
 		Carroplaca:     input.Carroplaca,
+		Renavam:        input.Renavam,
+		Chassi:         input.Chassi,
 		Carrotipo:      input.Carrotipo,
 		Carromodelo:    input.Carromodelo,
 		Carromarca:     input.Carromarca,
@@ -259,7 +295,7 @@ func CreateUserVeiculo(c *gin.Context) {
 	// Create contact sqlite
 	veiculo := ContactUserVeiculo{Idcoopermapp: input.Idcoopermapp, Documento: input.Cpf, Modalidade: input.Modalidade, Numerocnh: input.Numerocnh,
 		Categoriacnh: input.Categoriacnh, Validadecnh: input.Validadecnh, Compareceu: input.Compareceu,
-		Uniformizado: input.Uniformizado, Carroplaca: input.Carroplaca, Carrotipo: input.Carrotipo,
+		Uniformizado: input.Uniformizado, Carroplaca: input.Carroplaca, Renavam: input.Renavam, Chassi: input.Chassi, Carrotipo: input.Carrotipo,
 		Carromodelo: input.Carromodelo, Carromarca: input.Carromarca, Carroano: input.Carroano, Cor: input.Cor,
 		Carga: input.Carga, Capacidade: input.Capacidade, Adesivado: input.Adesivado, Dataadesivado: input.Dataadesivado,
 		Vistoriado: input.Vistoriado, Datavistoriado: input.Datavistoriado}
