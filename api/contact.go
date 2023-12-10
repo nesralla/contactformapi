@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -119,14 +120,71 @@ type CreateContactUserEnderecoInput struct {
 }
 
 // FindContacts : Controller for getting all contacts
-func FindUsers(c *gin.Context) {
-	db := c.MustGet("db").(*gorm.DB)
+func FindContacts(c *gin.Context) {
+	//db := c.MustGet("db").(*gorm.DB)
 
-	var users []ContactUser
+	var contacts []ContactUser
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-east-1"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error config aws": err.Error()})
+		return
+	}
+	client := dynamodb.NewFromConfig(cfg)
+	tableName := "contato"
+	response, err := client.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+		Statement: aws.String(
+			fmt.Sprintf("SELECT * FROM \"%v\"", tableName)),
+	})
 
-	db.Find(&users)
+	if err != nil {
 
-	c.JSON(http.StatusOK, gin.H{"data": users})
+		c.JSON(http.StatusBadRequest, gin.H{"error exe statment ": err.Error()})
+		return
+	} else {
+		err = attributevalue.UnmarshalListOfMaps(response.Items, &contacts)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error marshall lst": err.Error()})
+			return
+		}
+	}
+
+	//db.Find(&contacts)
+
+	c.JSON(http.StatusOK, gin.H{"data": contacts})
+}
+func FindContactsEndereco(c *gin.Context) {
+	//db := c.MustGet("db").(*gorm.DB)
+
+	var contacts []ContactUserEndereco
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-east-1"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error config aws": err.Error()})
+		return
+	}
+	client := dynamodb.NewFromConfig(cfg)
+	tableName := "contatoendereco"
+	response, err := client.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+		Statement: aws.String(
+			fmt.Sprintf("SELECT * FROM \"%v\"", tableName)),
+	})
+
+	if err != nil {
+
+		c.JSON(http.StatusBadRequest, gin.H{"error exe statment ": err.Error()})
+		return
+	} else {
+		err = attributevalue.UnmarshalListOfMaps(response.Items, &contacts)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error marshall lst": err.Error()})
+			return
+		}
+	}
+
+	//db.Find(&contacts)
+
+	c.JSON(http.StatusOK, gin.H{"data": contacts})
 }
 
 // CreateContact : controller for creating new contact
