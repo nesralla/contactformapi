@@ -16,56 +16,62 @@ import (
 
 // Contact : Model for Contact
 type ContactUser struct {
-	ID             uint      `gorm:"primary_key;autoincrement"`
-	Idcoopermapp   string    `gorm:"not null"`
-	Name           string    `gorm:"not null"`
-	Email          string    `gorm:"not null"`
-	Documento      string    `gorm:"not null"`
-	Cellphone      string    `gorm:"not null"`
-	Rg             string    `gorm:"not null"`
-	DataNascimento time.Time `gorm:"not null"`
-	EstadoCivil    string    `gorm:"not null"`
-	NamePai        string    `gorm:"not null"`
-	NameMae        string    `gorm:"not null"`
-	Sexo           string    `gorm:"not null"`
-	Pis            string    `gorm:"not null"`
-	TituloEleitor  string    `gorm:"not null"`
-	Beneficio      bool      `gorm:"not null"`
+	ID              uint      `gorm:"primary_key;autoincrement"`
+	Idcoopermapp    string    `gorm:"not null"`
+	Name            string    `gorm:"not null"`
+	Email           string    `gorm:"not null"`
+	Documento       string    `gorm:"not null"`
+	Cellphone       string    `gorm:"not null"`
+	Rg              string    `gorm:"not null"`
+	DataNascimento  time.Time `gorm:"not null"`
+	EstadoCivil     string    `gorm:"not null"`
+	NamePai         string    `gorm:"not null"`
+	NameMae         string    `gorm:"not null"`
+	Sexo            string    `gorm:"not null"`
+	Pis             string
+	TituloEleitor   string
+	Beneficio       bool      `gorm:"not null"`
+	DataCadastro    time.Time `gorm:"not null"`
+	DataAtualizacao time.Time `gorm:"not null"`
 }
 type ContactUserEndereco struct {
-	ID           uint   `gorm:"primary_key;autoincrement"`
-	Idcoopermapp string `gorm:"not null"`
-	Documento    string `gorm:"not null"`
-	Cep          string `gorm:"not null"`
-	Cidade       string `gorm:"not null"`
-	Uf           string `gorm:"not null"`
-	Endereco     string `gorm:"not null"`
-	Complemento  string
+	ID              uint   `gorm:"primary_key;autoincrement"`
+	Idcoopermapp    string `gorm:"not null"`
+	Documento       string `gorm:"not null"`
+	Cep             string `gorm:"not null"`
+	Cidade          string `gorm:"not null"`
+	Uf              string `gorm:"not null"`
+	Endereco        string `gorm:"not null"`
+	Complemento     string
+	DataCadastro    time.Time `gorm:"not null"`
+	DataAtualizacao time.Time `gorm:"not null"`
 }
 type ContactUserVeiculo struct {
-	ID             uint   `gorm:"primary_key;autoincrement"`
-	Idcoopermapp   string `gorm:"not null"`
-	Documento      string `gorm:"not null"`
-	Modalidade     int
-	Numerocnh      string
-	Categoriacnh   string
-	Validadecnh    time.Time
-	Compareceu     bool
-	Uniformizado   bool
-	Carroplaca     string
-	Renavam        string
-	Chassi         string
-	Carrotipo      int
-	Carromodelo    int
-	Carromarca     int
-	Carroano       string
-	Cor            string
-	Carga          bool
-	Capacidade     float32
-	Adesivado      bool
-	Dataadesivado  time.Time
-	Vistoriado     bool
-	Datavistoriado time.Time
+	ID              uint   `gorm:"primary_key;autoincrement"`
+	Idcoopermapp    string `gorm:"not null"`
+	Documento       string `gorm:"not null"`
+	Modalidade      int
+	Numerocnh       string
+	Categoriacnh    string
+	Validadecnh     time.Time
+	Compareceu      bool
+	Uniformizado    bool
+	Carroplaca      string
+	Renavam         string
+	Chassi          string
+	Carrotipo       int
+	Carromodelo     int
+	Carromarca      int
+	Carroano        string
+	Cor             string
+	Carga           bool
+	Capacidade      float32
+	Adesivado       bool
+	Dataadesivado   time.Time
+	Vistoriado      bool
+	Datavistoriado  time.Time
+	DataCadastro    time.Time `gorm:"not null"`
+	DataAtualizacao time.Time `gorm:"not null"`
 }
 type CreateContactUserVeiculoInput struct {
 	Idcoopermapp   string    `json:"idcoopermapp" binding:"required"`
@@ -153,6 +159,45 @@ func FindContacts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": contacts})
 }
+func FindContactsEnderecoByCpfAndId(c *gin.Context) {
+	var contacts []ContactUserEndereco
+	cpf := c.Params.ByName("cpf")
+	idcoopermapp := c.Params.ByName("idcoopermapp")
+	params, err := attributevalue.MarshalList([]interface{}{cpf, idcoopermapp})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error PArams querystring": err.Error()})
+		return
+	}
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-east-1"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error config aws": err.Error()})
+		return
+	}
+	client := dynamodb.NewFromConfig(cfg)
+	tableName := "contatoendereco"
+	response, err := client.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+		Statement: aws.String(
+			fmt.Sprintf("SELECT * FROM \"%v\" WHERE Documento=? AND Idcoopermapp=?", tableName)),
+		Parameters: params,
+	})
+
+	if err != nil {
+
+		c.JSON(http.StatusBadRequest, gin.H{"error exe statment ": err.Error()})
+		return
+	} else {
+		err = attributevalue.UnmarshalListOfMaps(response.Items, &contacts)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error marshall find endereco by cpf and id": err.Error()})
+			return
+		}
+	}
+
+	//db.Find(&contacts)
+
+	c.JSON(http.StatusOK, gin.H{"data": contacts})
+}
 func FindContactsEndereco(c *gin.Context) {
 	//db := c.MustGet("db").(*gorm.DB)
 
@@ -187,6 +232,79 @@ func FindContactsEndereco(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": contacts})
 }
 
+func FindContactsVeiculoByCpfAndId(c *gin.Context) {
+	var contacts []ContactUserVeiculo
+	cpf := c.Params.ByName("cpf")
+	idcoopermapp := c.Params.ByName("idcoopermapp")
+	params, err := attributevalue.MarshalList([]interface{}{cpf, idcoopermapp})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error PArams querystring": err.Error()})
+		return
+	}
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-east-1"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error config aws": err.Error()})
+		return
+	}
+	client := dynamodb.NewFromConfig(cfg)
+	tableName := "contatoveiculo"
+	response, err := client.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+		Statement: aws.String(
+			fmt.Sprintf("SELECT * FROM \"%v\" WHERE Documento=? AND Idcoopermapp=?", tableName)),
+		Parameters: params,
+	})
+
+	if err != nil {
+
+		c.JSON(http.StatusBadRequest, gin.H{"error exe statment ": err.Error()})
+		return
+	} else {
+		err = attributevalue.UnmarshalListOfMaps(response.Items, &contacts)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error marshall find veiculo by cpf and id": err.Error()})
+			return
+		}
+	}
+
+	//db.Find(&contacts)
+
+	c.JSON(http.StatusOK, gin.H{"data": contacts})
+}
+func FindContactsVeiculo(c *gin.Context) {
+	//db := c.MustGet("db").(*gorm.DB)
+
+	var contacts []ContactUserVeiculo
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-east-1"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error config aws": err.Error()})
+		return
+	}
+	client := dynamodb.NewFromConfig(cfg)
+	tableName := "contatoveiculo"
+	response, err := client.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+		Statement: aws.String(
+			fmt.Sprintf("SELECT * FROM \"%v\"", tableName)),
+	})
+
+	if err != nil {
+
+		c.JSON(http.StatusBadRequest, gin.H{"error exe statment ": err.Error()})
+		return
+	} else {
+		err = attributevalue.UnmarshalListOfMaps(response.Items, &contacts)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error marshall lst veiculo": err.Error()})
+			return
+		}
+	}
+
+	//db.Find(&contacts)
+
+	c.JSON(http.StatusOK, gin.H{"data": contacts})
+}
+
 // CreateContact : controller for creating new contact
 func CreateUser(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
@@ -206,20 +324,22 @@ func CreateUser(c *gin.Context) {
 	client := dynamodb.NewFromConfig(cfg)
 	tableName := "contato"
 	item, err := attributevalue.MarshalMap(&ContactUser{
-		Idcoopermapp:   input.Idcoopermapp,
-		Name:           input.Name,
-		Email:          input.Email,
-		Documento:      input.Cpf,
-		Cellphone:      input.Cellphone,
-		Rg:             input.Rg,
-		DataNascimento: input.DataNascimento,
-		EstadoCivil:    input.EstadoCivil,
-		NamePai:        input.NamePai,
-		NameMae:        input.NameMae,
-		Sexo:           input.Sexo,
-		Pis:            input.Pis,
-		TituloEleitor:  input.TituloEleitor,
-		Beneficio:      input.Beneficio,
+		Idcoopermapp:    input.Idcoopermapp,
+		Name:            input.Name,
+		Email:           input.Email,
+		Documento:       input.Cpf,
+		Cellphone:       input.Cellphone,
+		Rg:              input.Rg,
+		DataNascimento:  input.DataNascimento,
+		EstadoCivil:     input.EstadoCivil,
+		NamePai:         input.NamePai,
+		NameMae:         input.NameMae,
+		Sexo:            input.Sexo,
+		Pis:             input.Pis,
+		TituloEleitor:   input.TituloEleitor,
+		Beneficio:       input.Beneficio,
+		DataCadastro:    time.Now(),
+		DataAtualizacao: time.Now(),
 	})
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error marshal map": err.Error()})
@@ -239,7 +359,7 @@ func CreateUser(c *gin.Context) {
 	// Create contact sqlite
 	user := ContactUser{Idcoopermapp: input.Idcoopermapp, Name: input.Name, Email: input.Email, Documento: input.Cpf, Cellphone: input.Cellphone,
 		Rg: input.Rg, DataNascimento: input.DataNascimento, EstadoCivil: input.EstadoCivil, NamePai: input.NamePai, NameMae: input.NameMae,
-		Sexo: input.Sexo, Pis: input.Pis, TituloEleitor: input.TituloEleitor, Beneficio: input.Beneficio}
+		Sexo: input.Sexo, Pis: input.Pis, TituloEleitor: input.TituloEleitor, Beneficio: input.Beneficio, DataCadastro: time.Now(), DataAtualizacao: time.Now()}
 
 	db.Create(&user)
 
@@ -263,13 +383,15 @@ func CreateUserEndereco(c *gin.Context) {
 	tableName := "contatoendereco"
 
 	item, err := attributevalue.MarshalMap(&ContactUserEndereco{
-		Idcoopermapp: input.Idcoopermapp,
-		Documento:    input.Cpf,
-		Cep:          input.Cep,
-		Cidade:       input.Cidade,
-		Uf:           input.Uf,
-		Endereco:     input.Endereco,
-		Complemento:  input.Complemento,
+		Idcoopermapp:    input.Idcoopermapp,
+		Documento:       input.Cpf,
+		Cep:             input.Cep,
+		Cidade:          input.Cidade,
+		Uf:              input.Uf,
+		Endereco:        input.Endereco,
+		Complemento:     input.Complemento,
+		DataCadastro:    time.Now(),
+		DataAtualizacao: time.Now(),
 	})
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error marshal map endereco": err.Error()})
@@ -287,7 +409,7 @@ func CreateUserEndereco(c *gin.Context) {
 		return
 	}
 	// Create contact sqlite
-	endereco := ContactUserEndereco{Idcoopermapp: input.Idcoopermapp, Documento: input.Cpf, Cep: input.Cep, Cidade: input.Cidade, Uf: input.Uf, Endereco: input.Endereco, Complemento: input.Complemento}
+	endereco := ContactUserEndereco{Idcoopermapp: input.Idcoopermapp, Documento: input.Cpf, Cep: input.Cep, Cidade: input.Cidade, Uf: input.Uf, Endereco: input.Endereco, Complemento: input.Complemento, DataCadastro: time.Now(), DataAtualizacao: time.Now()}
 
 	db.Create(&endereco)
 
@@ -312,28 +434,30 @@ func CreateUserVeiculo(c *gin.Context) {
 	tableName := "contatoveiculo"
 
 	item, err := attributevalue.MarshalMap(&ContactUserVeiculo{
-		Idcoopermapp:   input.Idcoopermapp,
-		Documento:      input.Cpf,
-		Modalidade:     input.Modalidade,
-		Numerocnh:      input.Numerocnh,
-		Categoriacnh:   input.Categoriacnh,
-		Validadecnh:    input.Validadecnh,
-		Compareceu:     input.Compareceu,
-		Uniformizado:   input.Uniformizado,
-		Carroplaca:     input.Carroplaca,
-		Renavam:        input.Renavam,
-		Chassi:         input.Chassi,
-		Carrotipo:      input.Carrotipo,
-		Carromodelo:    input.Carromodelo,
-		Carromarca:     input.Carromarca,
-		Carroano:       input.Carroano,
-		Cor:            input.Cor,
-		Carga:          input.Carga,
-		Capacidade:     input.Capacidade,
-		Adesivado:      input.Adesivado,
-		Dataadesivado:  input.Dataadesivado,
-		Vistoriado:     input.Vistoriado,
-		Datavistoriado: input.Datavistoriado,
+		Idcoopermapp:    input.Idcoopermapp,
+		Documento:       input.Cpf,
+		Modalidade:      input.Modalidade,
+		Numerocnh:       input.Numerocnh,
+		Categoriacnh:    input.Categoriacnh,
+		Validadecnh:     input.Validadecnh,
+		Compareceu:      input.Compareceu,
+		Uniformizado:    input.Uniformizado,
+		Carroplaca:      input.Carroplaca,
+		Renavam:         input.Renavam,
+		Chassi:          input.Chassi,
+		Carrotipo:       input.Carrotipo,
+		Carromodelo:     input.Carromodelo,
+		Carromarca:      input.Carromarca,
+		Carroano:        input.Carroano,
+		Cor:             input.Cor,
+		Carga:           input.Carga,
+		Capacidade:      input.Capacidade,
+		Adesivado:       input.Adesivado,
+		Dataadesivado:   input.Dataadesivado,
+		Vistoriado:      input.Vistoriado,
+		Datavistoriado:  input.Datavistoriado,
+		DataCadastro:    time.Now(),
+		DataAtualizacao: time.Now(),
 	})
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error marshal map": err.Error()})
@@ -356,7 +480,7 @@ func CreateUserVeiculo(c *gin.Context) {
 		Uniformizado: input.Uniformizado, Carroplaca: input.Carroplaca, Renavam: input.Renavam, Chassi: input.Chassi, Carrotipo: input.Carrotipo,
 		Carromodelo: input.Carromodelo, Carromarca: input.Carromarca, Carroano: input.Carroano, Cor: input.Cor,
 		Carga: input.Carga, Capacidade: input.Capacidade, Adesivado: input.Adesivado, Dataadesivado: input.Dataadesivado,
-		Vistoriado: input.Vistoriado, Datavistoriado: input.Datavistoriado}
+		Vistoriado: input.Vistoriado, Datavistoriado: input.Datavistoriado, DataCadastro: time.Now(), DataAtualizacao: time.Now()}
 
 	db.Create(&veiculo)
 

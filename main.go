@@ -27,10 +27,14 @@ func main() {
 	// routes definition for finding and creating contacts
 	r.GET("/health", api.HealthCheck)
 	r.GET("/contacts", api.FindContacts)
+	r.GET("/getendereco/:cpf/:idcoopermapp", api.FindContactsEnderecoByCpfAndId)
 	r.GET("/contactsendereco", api.FindContactsEndereco)
 	r.POST("/contact", api.CreateUser)
 	r.POST("/contactendereco", api.CreateUserEndereco)
 	r.POST("/contactveiculo", api.CreateUserVeiculo)
+	r.GET("/getveiculo/:cpf/:idcoopermapp", api.FindContactsVeiculoByCpfAndId)
+	r.GET("/contactsveiculo", api.FindContactsVeiculo)
+
 	// start the server
 	r.SetTrustedProxies(nil)
 	r.Run(":8080")
