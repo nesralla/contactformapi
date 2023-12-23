@@ -113,7 +113,7 @@ type CreateContactUserInput struct {
 	Sexo           string    `json:"sexo" binding:"required"`
 	Pis            string    `json:"pis" binding:"required"`
 	TituloEleitor  string    `json:"tituloeleitor" binding:"required"`
-	Beneficio      bool      `json:"beneficio" binding:"required"`
+	Beneficio      bool      `json:"beneficio"`
 }
 type CreateContactUserEnderecoInput struct {
 	Idcoopermapp string `json:"idcoopermapp" binding:"required"`

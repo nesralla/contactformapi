@@ -3,6 +3,7 @@ package main
 import (
 	"contactform/api"
 	"contactform/config"
+	"contactform/utils"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -26,6 +27,8 @@ func main() {
 
 	// routes definition for finding and creating contacts
 	r.GET("/health", api.HealthCheck)
+	r.GET("/viacep/:cep", utils.FindAdressByZipCode)
+
 	r.GET("/contacts", api.FindContacts)
 	r.GET("/getendereco/:cpf/:idcoopermapp", api.FindContactsEnderecoByCpfAndId)
 	r.GET("/contactsendereco", api.FindContactsEndereco)
