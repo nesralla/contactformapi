@@ -34,6 +34,7 @@ type ContactUser struct {
 	DataCadastro    time.Time `gorm:"not null"`
 	DataAtualizacao time.Time `gorm:"not null"`
 }
+
 type ContactUserEndereco struct {
 	ID              uint   `gorm:"primary_key;autoincrement"`
 	Idcoopermapp    string `gorm:"not null"`
@@ -43,9 +44,11 @@ type ContactUserEndereco struct {
 	Uf              string `gorm:"not null"`
 	Endereco        string `gorm:"not null"`
 	Complemento     string
+	Bairro          string
 	DataCadastro    time.Time `gorm:"not null"`
 	DataAtualizacao time.Time `gorm:"not null"`
 }
+
 type ContactUserVeiculo struct {
 	ID              uint   `gorm:"primary_key;autoincrement"`
 	Idcoopermapp    string `gorm:"not null"`
@@ -123,13 +126,70 @@ type CreateContactUserEnderecoInput struct {
 	Uf           string `json:"uf" binding:"required"`
 	Endereco     string `json:"endereco" binding:"required"`
 	Complemento  string `json:"complemento"`
+	Bairro       string `json:"bairro"`
+}
+type ContactUserOutput struct {
+	Idcoopermapp    string    `json:"idcoopermapp"`
+	Name            string    `json:"name" `
+	Email           string    `json:"email" `
+	Documento       string    `json:"cpf" `
+	Cellphone       string    `json:"cellphone" `
+	Rg              string    `json:"rg"`
+	DataNascimento  time.Time `json:"datanascimento"`
+	EstadoCivil     string    `json:"estadocivil" `
+	NamePai         string    `json:"namepai" `
+	NameMae         string    `json:"namemae" `
+	Sexo            string    `json:"sexo" `
+	Pis             string    `json:"pis" `
+	TituloEleitor   string    `json:"tituloeleitor" `
+	Beneficio       bool      `json:"beneficio"`
+	DataCadastro    time.Time `json:"datacadastro"`
+	DataAtualizacao time.Time `json:"dataatualizacao"`
+}
+type ContactUserVeiculoOutput struct {
+	Idcoopermapp    string    `json:"idcoopermapp" `
+	Documento       string    `json:"cpf"`
+	Modalidade      int       `json:"modalidade"`
+	Numerocnh       string    `json:"numerocnh" `
+	Categoriacnh    string    `json:"categoriacnh"`
+	Validadecnh     time.Time `json:"validadecnh"`
+	Compareceu      bool      `json:"compareceu"`
+	Uniformizado    bool      `json:"uniformizado"`
+	Carroplaca      string    `json:"carroplaca"`
+	Renavam         string    `json:"renavam"`
+	Chassi          string    `json:"chassi"`
+	Carrotipo       int       `json:"carrotipoy"`
+	Carromodelo     int       `json:"carromodelo"`
+	Carromarca      int       `json:"carromarca"`
+	Carroano        string    `json:"carroano"`
+	Cor             string    `json:"cor"`
+	Carga           bool      `json:"carga"`
+	Capacidade      float32   `json:"capacidade"`
+	Adesivado       bool      `json:"adesivado"`
+	Dataadesivado   time.Time `json:"dataadesivado"`
+	Vistoriado      bool      `json:"vistoriado"`
+	Datavistoriado  time.Time `json:"datavistoriado"`
+	DataCadastro    time.Time `json:"datacadastro"`
+	DataAtualizacao time.Time `json:"dataatualizacao"`
+}
+type ContactUserEnderecoOutput struct {
+	Idcoopermapp    string    `json:"idcoopermapp" `
+	Documento       string    `json:"cpf" `
+	Cep             string    `json:"cep" `
+	Cidade          string    `json:"cidade" `
+	Uf              string    `json:"uf" `
+	Endereco        string    `json:"endereco" `
+	Complemento     string    `json:"complemento"`
+	Bairro          string    `json:"bairro"`
+	DataCadastro    time.Time `json:"datacadastro"`
+	DataAtualizacao time.Time `json:"dataatualizacao"`
 }
 
 // FindContacts : Controller for getting all contacts
 func FindContacts(c *gin.Context) {
 	//db := c.MustGet("db").(*gorm.DB)
 
-	var contacts []ContactUser
+	var contacts []ContactUserOutput
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithRegion("us-east-1"))
 	if err != nil {
@@ -160,7 +220,7 @@ func FindContacts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": contacts})
 }
 func FindContactsEnderecoByCpfAndId(c *gin.Context) {
-	var contacts []ContactUserEndereco
+	var contacts []ContactUserEnderecoOutput
 	cpf := c.Params.ByName("cpf")
 	idcoopermapp := c.Params.ByName("idcoopermapp")
 	params, err := attributevalue.MarshalList([]interface{}{cpf, idcoopermapp})
@@ -390,6 +450,7 @@ func CreateUserEndereco(c *gin.Context) {
 		Uf:              input.Uf,
 		Endereco:        input.Endereco,
 		Complemento:     input.Complemento,
+		Bairro:          input.Bairro,
 		DataCadastro:    time.Now(),
 		DataAtualizacao: time.Now(),
 	})
@@ -409,7 +470,9 @@ func CreateUserEndereco(c *gin.Context) {
 		return
 	}
 	// Create contact sqlite
-	endereco := ContactUserEndereco{Idcoopermapp: input.Idcoopermapp, Documento: input.Cpf, Cep: input.Cep, Cidade: input.Cidade, Uf: input.Uf, Endereco: input.Endereco, Complemento: input.Complemento, DataCadastro: time.Now(), DataAtualizacao: time.Now()}
+	endereco := ContactUserEndereco{Idcoopermapp: input.Idcoopermapp, Documento: input.Cpf,
+		Cep: input.Cep, Cidade: input.Cidade, Uf: input.Uf, Endereco: input.Endereco,
+		Complemento: input.Complemento, Bairro: input.Bairro, DataCadastro: time.Now(), DataAtualizacao: time.Now()}
 
 	db.Create(&endereco)
 

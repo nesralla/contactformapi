@@ -28,7 +28,8 @@ func main() {
 	// routes definition for finding and creating contacts
 	r.GET("/health", api.HealthCheck)
 	r.GET("/viacep/:cep", utils.FindAdressByZipCode)
-
+	r.GET("/fipe/marcas/:tipo/:codigo", utils.GetMarca)
+	r.GET("/fipe/modelos/:tipo/:marca/:codigo", utils.GetModelo)
 	r.GET("/contacts", api.FindContacts)
 	r.GET("/getendereco/:cpf/:idcoopermapp", api.FindContactsEnderecoByCpfAndId)
 	r.GET("/contactsendereco", api.FindContactsEndereco)
