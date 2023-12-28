@@ -29,14 +29,20 @@ func main() {
 	r.GET("/health", api.HealthCheck)
 	r.GET("/viacep/:cep", utils.FindAdressByZipCode)
 	r.GET("/fipe/marcas/:tipo/:codigo", utils.GetMarca)
+	r.GET("/fipe/tipo/:tipo", utils.GetTipo)
+	r.GET("/fipe/modalidade/:modalidade", utils.GetModalidade)
 	r.GET("/fipe/modelos/:tipo/:marca/:codigo", utils.GetModelo)
 	r.GET("/contacts", api.FindContacts)
+	r.POST("/removecontact/:cpf/:idcoopermapp", api.RemoveContactByCpfAndId)
 	r.GET("/getendereco/:cpf/:idcoopermapp", api.FindContactsEnderecoByCpfAndId)
+	r.POST("/removeendereco/:cpf/:idcoopermapp", api.RemoveContactsEnderecoByCpfAndId)
+
 	r.GET("/contactsendereco", api.FindContactsEndereco)
 	r.POST("/contact", api.CreateUser)
 	r.POST("/contactendereco", api.CreateUserEndereco)
 	r.POST("/contactveiculo", api.CreateUserVeiculo)
 	r.GET("/getveiculo/:cpf/:idcoopermapp", api.FindContactsVeiculoByCpfAndId)
+	r.POST("/removeveiculo/:cpf/:idcoopermapp", api.RemoveContactsVeiculoByCpfAndId)
 	r.GET("/contactsveiculo", api.FindContactsVeiculo)
 
 	// start the server

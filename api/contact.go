@@ -158,7 +158,7 @@ type ContactUserVeiculoOutput struct {
 	Carroplaca      string    `json:"carroplaca"`
 	Renavam         string    `json:"renavam"`
 	Chassi          string    `json:"chassi"`
-	Carrotipo       int       `json:"carrotipoy"`
+	Carrotipo       int       `json:"carrotipo"`
 	Carromodelo     int       `json:"carromodelo"`
 	Carromarca      int       `json:"carromarca"`
 	Carroano        string    `json:"carroano"`
@@ -219,6 +219,38 @@ func FindContacts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": contacts})
 }
+func RemoveContactByCpfAndId(c *gin.Context) {
+	cpf := c.Params.ByName("cpf")
+	idcoopermapp := c.Params.ByName("idcoopermapp")
+	params, err := attributevalue.MarshalList([]interface{}{cpf, idcoopermapp})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error PArams querystring": err.Error()})
+		return
+	}
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-east-1"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error config aws": err.Error()})
+		return
+	}
+	client := dynamodb.NewFromConfig(cfg)
+	tableName := "contato"
+	response, err := client.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+		Statement: aws.String(
+			fmt.Sprintf("DELETE FROM \"%v\" WHERE Documento=? AND Idcoopermapp=?", tableName)),
+		Parameters: params,
+	})
+
+	if err != nil {
+
+		c.JSON(http.StatusBadRequest, gin.H{"error exe statment ": err.Error()})
+		return
+	}
+
+	//db.Find(&contacts)
+
+	c.JSON(http.StatusOK, gin.H{"data": response})
+}
 func FindContactsEnderecoByCpfAndId(c *gin.Context) {
 	var contacts []ContactUserEnderecoOutput
 	cpf := c.Params.ByName("cpf")
@@ -258,6 +290,38 @@ func FindContactsEnderecoByCpfAndId(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": contacts})
 }
+func RemoveContactsEnderecoByCpfAndId(c *gin.Context) {
+	cpf := c.Params.ByName("cpf")
+	idcoopermapp := c.Params.ByName("idcoopermapp")
+	params, err := attributevalue.MarshalList([]interface{}{cpf, idcoopermapp})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error PArams querystring": err.Error()})
+		return
+	}
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-east-1"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error config aws": err.Error()})
+		return
+	}
+	client := dynamodb.NewFromConfig(cfg)
+	tableName := "contatoendereco"
+	response, err := client.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+		Statement: aws.String(
+			fmt.Sprintf("DELETE FROM \"%v\" WHERE Documento=? AND Idcoopermapp=?", tableName)),
+		Parameters: params,
+	})
+
+	if err != nil {
+
+		c.JSON(http.StatusBadRequest, gin.H{"error exe statment ": err.Error()})
+		return
+	}
+
+	//db.Find(&contacts)
+
+	c.JSON(http.StatusOK, gin.H{"data": response})
+}
 func FindContactsEndereco(c *gin.Context) {
 	//db := c.MustGet("db").(*gorm.DB)
 
@@ -293,7 +357,7 @@ func FindContactsEndereco(c *gin.Context) {
 }
 
 func FindContactsVeiculoByCpfAndId(c *gin.Context) {
-	var contacts []ContactUserVeiculo
+	var contacts []ContactUserVeiculoOutput
 	cpf := c.Params.ByName("cpf")
 	idcoopermapp := c.Params.ByName("idcoopermapp")
 	params, err := attributevalue.MarshalList([]interface{}{cpf, idcoopermapp})
@@ -330,6 +394,38 @@ func FindContactsVeiculoByCpfAndId(c *gin.Context) {
 	//db.Find(&contacts)
 
 	c.JSON(http.StatusOK, gin.H{"data": contacts})
+}
+func RemoveContactsVeiculoByCpfAndId(c *gin.Context) {
+	cpf := c.Params.ByName("cpf")
+	idcoopermapp := c.Params.ByName("idcoopermapp")
+	params, err := attributevalue.MarshalList([]interface{}{cpf, idcoopermapp})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error PArams querystring": err.Error()})
+		return
+	}
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("us-east-1"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error config aws": err.Error()})
+		return
+	}
+	client := dynamodb.NewFromConfig(cfg)
+	tableName := "contatoveiculo"
+	response, err := client.ExecuteStatement(context.TODO(), &dynamodb.ExecuteStatementInput{
+		Statement: aws.String(
+			fmt.Sprintf("DELETE FROM \"%v\" WHERE Documento=? AND Idcoopermapp=?", tableName)),
+		Parameters: params,
+	})
+
+	if err != nil {
+
+		c.JSON(http.StatusBadRequest, gin.H{"error exe statment ": err.Error()})
+		return
+	}
+
+	//db.Find(&contacts)
+
+	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 func FindContactsVeiculo(c *gin.Context) {
 	//db := c.MustGet("db").(*gorm.DB)

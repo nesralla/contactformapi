@@ -14,6 +14,16 @@ type FipeOutput struct {
 	Label string `json:"label"`
 	Value string `json:"value"`
 }
+type FipeModeloOutput struct {
+	Modelos []struct {
+		Label string `json:"label"`
+		Value int    `json:"value"`
+	} `json:"modelos"`
+	Anos []struct {
+		Label string `json:"label"`
+		Value string `json:"value"`
+	} `json:"anos"`
+}
 type MarcasInput struct {
 	CodigoTabelaReferencia int `json:"codigoTabelaReferencia"`
 	CodigoTipoVeiculo      int `json:"codigoTipoVeiculo"`
@@ -33,7 +43,7 @@ func GetMarca(c *gin.Context) {
 		return
 	}
 	body, _ := json.Marshal(map[string]int{
-		"codigoTabelaReferencia": 231,
+		"codigoTabelaReferencia": 302,
 		"codigoTipoVeiculo":      tipo,
 	})
 	payload := bytes.NewBuffer(body)
@@ -65,8 +75,9 @@ func filter(in []FipeOutput, codigo string) []FipeOutput {
 	}
 	return out
 }
+
 func GetModelo(c *gin.Context) {
-	var fipeOutputs []FipeOutput
+	var fipeOutputs FipeModeloOutput
 	codigo := c.Params.ByName("codigo")
 	tipo, err := strconv.Atoi(c.Params.ByName("tipo"))
 	if err != nil {
@@ -79,7 +90,7 @@ func GetModelo(c *gin.Context) {
 		return
 	}
 	body, _ := json.Marshal(map[string]int{
-		"codigoTabelaReferencia": 301,
+		"codigoTabelaReferencia": 302,
 		"codigoTipoVeiculo":      tipo,
 		"codigoMarca":            marca,
 	})
@@ -100,6 +111,35 @@ func GetModelo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error unarshal ": err.Error()})
 		return
 	}
-	out := filter(fipeOutputs, codigo)
+	var modelos []FipeOutput
+	for _, m := range fipeOutputs.Modelos {
+		modelos = append(modelos, FipeOutput{
+			Label: m.Label,
+			Value: strconv.Itoa(m.Value),
+		})
+	}
+	out := filter(modelos, codigo)
+	c.JSON(http.StatusOK, gin.H{"data": out})
+}
+func GetTipo(c *gin.Context) {
+
+	tipo, err := strconv.Atoi(c.Params.ByName("tipo"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error convert tipo int": err.Error()})
+		return
+	}
+	out := CarroTipo(tipo).String()
+
+	c.JSON(http.StatusOK, gin.H{"data": out})
+}
+func GetModalidade(c *gin.Context) {
+
+	modalidade, err := strconv.Atoi(c.Params.ByName("modalidade"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error convert tipo int": err.Error()})
+		return
+	}
+	out := Modalidade(modalidade).String()
+
 	c.JSON(http.StatusOK, gin.H{"data": out})
 }
